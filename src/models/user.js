@@ -15,6 +15,9 @@ const userSchema = new mongoose.Schema(
     jobTitle: {
       type: String
     },
+    avatar: {
+      type: Buffer
+    },
     password: {
       trim: true,
       minlength: 6,

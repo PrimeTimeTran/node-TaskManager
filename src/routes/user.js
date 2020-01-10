@@ -1,4 +1,6 @@
 const express = require("express");
+const multer = require("multer");
+
 const User = require("../models/user");
 const auth = require("../middleware/auth");
 
@@ -120,5 +122,66 @@ router.delete("/users/me", auth, async (req, res) => {
     res.status(500).send();
   }
 });
+
+// ✍️📚 Image Upload
+
+// 1. Involves limiting on size and file type.
+
+const upload = multer({
+  // Saves to file system
+  // dest: "avatars",
+  limits: {
+    fileSize: 1000000
+  },
+  fileFilter(req, file, cb) {
+    // Look for string that has . then doc OR doc. The string must end with with this with the $
+    // \.(doc|docx)$
+    // https://regex101.com/
+    if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+      return cb(new Error("Please upload an image."));
+    }
+    cb(undefined, true);
+    cb(undefined, false);
+  }
+});
+
+router.post(
+  "/users/me/avatars",
+  auth,
+  upload.single("avatar"),
+  async (req, res) => {
+    // Binary data displaying in HTML
+    req.user.avatar = req.file.buffer;
+    await req.user.save();
+    res.send();
+  },
+  // Must have this signature(4 arguments).
+  // Second argument is a callback to handle uncaught errors
+  (error, req, res, next) => {
+    res.status(400).send({ error: error.message });
+  }
+);
+
+router.delete("/users/me/avatars", auth, async (req, res) => {
+  req.user.avatar = undefined;
+  await req.user.save();
+  res.send();
+});
+
+router.get('/users/:id/avatar', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+
+    if (!user || !user.avatar) {
+      throw new Error()
+    }
+    res.set('Content-Type', 'image/jpg')
+    res.send(user.avatar)
+  } catch (e) {
+    res.send(404)
+  }
+})
+
+// data:image/jpg;base64,MYBINARYFILE
 
 module.exports = router;
