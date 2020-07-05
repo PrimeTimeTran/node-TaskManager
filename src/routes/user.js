@@ -1,8 +1,10 @@
 const express = require("express");
 const multer = require("multer");
+const sharp = require("sharp");
 
 const User = require("../models/user");
 const auth = require("../middleware/auth");
+const { sendWelcomeEmail, accountDeletionFollowupEmail } = require("../emails/account")
 
 const router = new express.Router();
 
@@ -10,6 +12,7 @@ router.post("/users", async (req, res) => {
   const user = new User(req.body);
   try {
     await user.save();
+    sendWelcomeEmail(user.email, user.name)
     const token = await user.generateAuthToken();
     res.status(201).send({ user, token });
   } catch (e) {
@@ -114,6 +117,9 @@ router.delete("/users/me", auth, async (req, res) => {
     // const user = await User.findByIdAndDelete(req.user._id);
     // if (!user) return res.status(404).send();
 
+
+    accountDeletionFollowupEmail(req.user.email, req.user.name)
+
     // ✍️📚 Uses the user we set in the auth middleware
     await req.user.remove();
 
@@ -150,8 +156,15 @@ router.post(
   auth,
   upload.single("avatar"),
   async (req, res) => {
-    // Binary data displaying in HTML
-    req.user.avatar = req.file.buffer;
+    // Buffer from front end can be directly used.
+    // req.user.avatar = req.file.buffer;
+
+    // How to manipulate an image
+    const buffer = await sharp(req.file.buffer)
+      .png()
+      .resize({ width: 250, height: 250 })
+      .toBuffer();
+    req.user.avatar = buffer;
     await req.user.save();
     res.send();
   },
@@ -168,20 +181,22 @@ router.delete("/users/me/avatars", auth, async (req, res) => {
   res.send();
 });
 
-router.get('/users/:id/avatar', async (req, res) => {
+router.get("/users/:id/avatar", async (req, res) => {
   try {
-    const user = await User.findById(req.params.id)
+    const user = await User.findById(req.params.id);
 
     if (!user || !user.avatar) {
-      throw new Error()
+      throw new Error();
     }
-    res.set('Content-Type', 'image/jpg')
-    res.send(user.avatar)
+    res.set("Content-Type", "image/jpg");
+    res.send(user.avatar);
   } catch (e) {
-    res.send(404)
+    res.send(404);
   }
-})
+});
 
 // data:image/jpg;base64,MYBINARYFILE
 
 module.exports = router;
+
+

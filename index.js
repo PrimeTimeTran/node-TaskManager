@@ -1,9 +1,9 @@
-require("./src/db/mongoose");
+require("../db/mongoose");
 
 const multer = require("multer");
 const express = require("express");
-const userRouter = require("./src/routes/user");
-const taskRouter = require("./src/routes/task");
+const userRouter = require("./user");
+const taskRouter = require("./task");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -43,13 +43,13 @@ app.listen(port, params => {
 // myFunction();
 
 // ✍️📚 Image Upload
-const upload = multer({
-  dest: "images",
-  limits: {
-    fileSize: 1000000
-  }
-});
+// const upload = multer({
+//   dest: "images",
+//   limits: {
+//     fileSize: 1000000
+//   }
+// });
 
-app.post("/upload", upload.single("upload"), (req, res) => {
-  res.send();
-});
+// app.post("/upload", upload.single("upload"), (req, res) => {
+//   res.send();
+// });

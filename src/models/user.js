@@ -10,13 +10,13 @@ const userSchema = new mongoose.Schema(
     name: {
       trim: true,
       type: String,
-      required: true
+      required: true,
     },
     jobTitle: {
-      type: String
+      type: String,
     },
     avatar: {
-      type: Buffer
+      type: Buffer,
     },
     password: {
       trim: true,
@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema(
         if (value.includes("password")) {
           throw new Error("Password shouldnt be 'password'");
         }
-      }
+      },
     },
     email: {
       trim: true,
@@ -39,7 +39,7 @@ const userSchema = new mongoose.Schema(
         if (!validator.isEmail(value)) {
           throw new Error("Email invalid.");
         }
-      }
+      },
     },
     age: {
       type: Number,
@@ -51,19 +51,19 @@ const userSchema = new mongoose.Schema(
         if (value < 18) {
           throw new Error("Must be at least 18.");
         }
-      }
+      },
     },
     tokens: [
       {
         token: {
           type: String,
-          required: true
-        }
-      }
-    ]
+          required: true,
+        },
+      },
+    ],
   },
   {
-    timestamps: true
+    timestamps: true,
   }
 );
 
@@ -74,10 +74,10 @@ const userSchema = new mongoose.Schema(
 userSchema.virtual("tasks", {
   ref: "Task",
   localField: "_id",
-  foreignField: "owner"
+  foreignField: "owner",
 });
 
-userSchema.methods.generateAuthToken = async function() {
+userSchema.methods.generateAuthToken = async function () {
   const user = this;
   const token = jwt.sign({ _id: user._id.toString() }, "mySecret");
   user.tokens = user.tokens.concat({ token });
@@ -85,11 +85,12 @@ userSchema.methods.generateAuthToken = async function() {
   return token;
 };
 
-userSchema.methods.toJSON = function() {
+userSchema.methods.toJSON = function () {
   const user = this;
   const userObject = user.toObject();
   delete userObject.password;
   delete userObject.tokens;
+  delete userObject.avatar;
   return userObject;
 };
 
@@ -110,7 +111,7 @@ userSchema.statics.findByCredentials = async (email, password) => {
 };
 
 // Hash plaintext password
-userSchema.pre("save", async function(next) {
+userSchema.pre("save", async function (next) {
   const user = this;
   if (user.isModified("password")) {
     user.password = await bcrypt.hash(user.password, 8);
@@ -119,7 +120,7 @@ userSchema.pre("save", async function(next) {
 });
 
 // ✍️📚 Delete tasks for user when a user is deleted
-userSchema.pre("remove", async function(next) {
+userSchema.pre("remove", async function (next) {
   const user = this;
   await Task.deleteMany({ owner: user._id });
   next();
@@ -127,7 +128,7 @@ userSchema.pre("remove", async function(next) {
 
 const User = mongoose.model("User", userSchema);
 
-// const loi = new User({ name: "Loi", email: "loi@coderschool.com", password: 'hi' });
+// const loi = new User({ name: "Loi", email: "loi@coderschool.com", password: 'asdfas' });
 
 // loi
 //   .save()
