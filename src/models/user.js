@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema(
       required: true,
       validate(value) {
         if (value.includes("password")) {
-          throw new Error("Password shouldnt be 'password'");
+          throw new Error("Password shouldn't be 'password'");
         }
       },
     },

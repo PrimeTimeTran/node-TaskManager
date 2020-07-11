@@ -1,18 +1,20 @@
-require("../db/mongoose");
+require("./db/mongoose");
+const dotenv = require("dotenv");
 
 const multer = require("multer");
 const express = require("express");
-const userRouter = require("./user");
-const taskRouter = require("./task");
+const userRouter = require("./routes/user");
+const taskRouter = require("./routes/task");
 
-const app = express();
+dotenv.config();
 const port = process.env.PORT || 3000;
 
+const app = express();
 app.use(express.json());
 app.use(userRouter);
 app.use(taskRouter);
 
-app.listen(port, params => {
+app.listen(port, (params) => {
   console.log("Listening on port " + port);
 });
 
