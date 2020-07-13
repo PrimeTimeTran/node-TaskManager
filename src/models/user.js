@@ -67,10 +67,10 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// ✍️📚 Relationship definition
+// ✍️ Relationship definition
 
 // Take my localField(_id) and look at the ref(Task).
-// I'll be the foreignField(owner). The field which will have the association
+// I'll be the foreignField(owner). The field which will have the association.
 userSchema.virtual("tasks", {
   ref: "Task",
   localField: "_id",
@@ -94,23 +94,23 @@ userSchema.methods.toJSON = function () {
   return userObject;
 };
 
-// Define a method on a model
+// Define a method on the model class.
 userSchema.statics.findByCredentials = async (email, password) => {
   const user = await User.findOne({ email });
   if (!user) {
-    throw new Error("Unable to login.");
+    throw new Error("Unable to login. Email not found.");
   }
 
   const isMatch = await bcrypt.compare(password, user.password);
 
   if (!isMatch) {
-    throw new Error("Unable to login.");
+    throw new Error("Unable to login. Password incorrect.");
   }
 
   return user;
 };
 
-// Hash plaintext password
+// Hash password middleware before saving.
 userSchema.pre("save", async function (next) {
   const user = this;
   if (user.isModified("password")) {
@@ -119,7 +119,7 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-// ✍️📚 Delete tasks for user when a user is deleted
+// ✍️ Delete tasks for user when a user is deleted
 userSchema.pre("remove", async function (next) {
   const user = this;
   await Task.deleteMany({ owner: user._id });

@@ -4,7 +4,10 @@ const sharp = require("sharp");
 
 const User = require("../models/user");
 const auth = require("../middleware/auth");
-const { sendWelcomeEmail, accountDeletionFollowupEmail } = require("../emails/account")
+const {
+  sendWelcomeEmail,
+  accountDeletionFollowupEmail,
+} = require("../emails/account");
 
 const router = new express.Router();
 
@@ -12,7 +15,7 @@ router.post("/users", async (req, res) => {
   const user = new User(req.body);
   try {
     await user.save();
-    sendWelcomeEmail(user.email, user.name)
+    sendWelcomeEmail(user.email, user.name);
     const token = await user.generateAuthToken();
     res.status(201).send({ user, token });
   } catch (e) {
@@ -35,7 +38,7 @@ router.post("/users/login", async (req, res) => {
 
 router.post("/users/logout", auth, async (req, res) => {
   try {
-    req.user.tokens = req.user.tokens.filter(token => {
+    req.user.tokens = req.user.tokens.filter((token) => {
       return token.token !== req.token;
     });
     await req.user.save();
@@ -84,7 +87,7 @@ router.patch("/users/me", auth, async (req, res) => {
   const updates = Object.keys(req.body);
   const allowedUpdates = ["name", "email", "password", "age"];
 
-  const isValidOperation = updates.every(update => {
+  const isValidOperation = updates.every((update) => {
     return allowedUpdates.includes(update);
   });
 
@@ -93,10 +96,10 @@ router.patch("/users/me", auth, async (req, res) => {
 
   try {
     const user = req.user;
-    updates.forEach(field => (user[field] = req.body[field]));
+    updates.forEach((field) => (user[field] = req.body[field]));
     await user.save();
 
-    // ✍️📚 The findByIdAndUpdate() bypasses Mongoose(skips middleware[beforeSave])
+    // ✍️ The findByIdAndUpdate() bypasses Mongoose(skips middleware[beforeSave])
     // const user = await User.findByIdAndUpdate(req.params.id, req.body, {
     //   new: true,
     //   runValidators: true
@@ -111,25 +114,61 @@ router.patch("/users/me", auth, async (req, res) => {
   }
 });
 
-router.delete("/users/me", auth, async (req, res) => {
+router.patch("/users/:id", async (req, res) => {
+  const updates = Object.keys(req.body);
+  const allowedUpdates = ["name", "email", "password", "age"];
+  const isValidOperation = updates.every((update) =>
+    allowedUpdates.includes(update)
+  );
+
+  if (!isValidOperation) {
+    return res.status(400).send({ error: "Invalid updates!" });
+  }
+
   try {
-    // ✍️📚 Uses mongoose internals to remove the user
-    // const user = await User.findByIdAndDelete(req.user._id);
-    // if (!user) return res.status(404).send();
+    const user = await User.findById(req.params.id);
 
+    if (!user) {
+      return res.status(404).send();
+    }
+    updates.forEach((update) => (user[update] = req.body[update]));
 
-    accountDeletionFollowupEmail(req.user.email, req.user.name)
-
-    // ✍️📚 Uses the user we set in the auth middleware
-    await req.user.remove();
-
-    res.send(req.user);
-  } catch (error) {
-    res.status(500).send();
+    await user.save();
+    res.send(user);
+  } catch (e) {
+    res.status(400).send(e);
   }
 });
 
-// ✍️📚 Image Upload
+router.delete("/users/me", auth, async (req, res) => {
+  try {
+    // ✍️ Uses mongoose internals to remove the user
+    // const user = await User.findByIdAndDelete(req.user._id);
+    // if (!user) return res.status(404).send();
+
+    accountDeletionFollowupEmail(req.user.email, req.user.name);
+
+    // ✍️ Uses the user we set in the auth middleware
+    await req.user.remove();
+
+    res.send(req.user);
+  } catch (e) {
+    res.status(500).send(e);
+  }
+});
+
+router.delete("/users/:id", async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+
+    if (!user) return res.status(404).send();
+    res.send(user);
+  } catch (e) {
+    res.status(500).send(e);
+  }
+});
+
+// ✍️ Image Upload
 
 // 1. Involves limiting on size and file type.
 
@@ -137,7 +176,7 @@ const upload = multer({
   // Saves to file system
   // dest: "avatars",
   limits: {
-    fileSize: 1000000
+    fileSize: 1000000,
   },
   fileFilter(req, file, cb) {
     // Look for string that has . then doc OR doc. The string must end with with this with the $
@@ -148,7 +187,7 @@ const upload = multer({
     }
     cb(undefined, true);
     cb(undefined, false);
-  }
+  },
 });
 
 router.post(
@@ -198,5 +237,3 @@ router.get("/users/:id/avatar", async (req, res) => {
 // data:image/jpg;base64,MYBINARYFILE
 
 module.exports = router;
-
-
