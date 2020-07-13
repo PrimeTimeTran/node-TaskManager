@@ -76,19 +76,22 @@ router.patch("/tasks/:id", auth, async (req, res) => {
     return res.status(400).send({ error: "Invalid updates." });
 
   try {
+    // Doesn't properly prompt if trying to update invalid field.
     // const task = await Task.findByIdAndUpdate(req.params.id, req.body, {
     //   new: true,
     //   runValidators: true,
     // });
 
-    
-    // const task = await Task.findOne({
-    //   _id: req.params.id,
-    //   owner: req.user._id
-    // });
+    // Authenticated user can patch
+    // const task = await Task.findOne(req.params.id);
 
-    const task = await Task.findById(req.params.id);
-    updates.forEach(field => (task[field] = req.body[field]));
+    // Authenticated & owner can patch
+    const task = await Task.findOne({
+      _id: req.params.id,
+      owner: req.user._id,
+    });
+
+    updates.forEach((field) => (task[field] = req.body[field]));
     await task.save();
 
     if (!task) return res.status(404).send();
@@ -102,14 +105,14 @@ router.patch("/tasks/:id", auth, async (req, res) => {
 router.delete("/tasks/:id", auth, async (req, res) => {
   try {
     const task = await Task.findOneAndDelete({
-      _id: sssreq.params.id,
+      _id: req.params.id,
       owner: req.user._id,
     });
 
     if (!task) return res.status(404).send();
 
     res.send(task);
-  } catch (error) { 
+  } catch (error) {
     res.status(500).send();
   }
 });
