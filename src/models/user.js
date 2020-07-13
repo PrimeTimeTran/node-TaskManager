@@ -65,10 +65,10 @@ const userSchema = new mongoose.Schema(
   {
     timestamps: true,
   }
-);
+); 
 
 // ✍️ Relationship definition
-
+// Define .tasks().
 // Take my localField(_id) and look at the ref(Task).
 // I'll be the foreignField(owner). The field which will have the association.
 userSchema.virtual("tasks", {
@@ -86,8 +86,7 @@ userSchema.methods.generateAuthToken = async function () {
 };
 
 userSchema.methods.toJSON = function () {
-  const user = this;
-  const userObject = user.toObject();
+  const userObject = this.toObject();
   delete userObject.password;
   delete userObject.tokens;
   delete userObject.avatar;
