@@ -24,11 +24,9 @@ router.post("/users", async (req, res) => {
 });
 
 router.post("/users/login", async (req, res) => {
+  const { email, password } = req.body;
   try {
-    const user = await User.findByCredentials(
-      req.body.email,
-      req.body.password
-    );
+    const user = await User.findByCredentials(email, password);
     const token = await user.generateAuthToken();
     res.send({ user, token });
   } catch (e) {
@@ -131,7 +129,7 @@ router.patch("/users/:id", async (req, res) => {
     if (!user) {
       return res.status(404).send();
     }
-    updates.forEach((update) => (user[update] = req.body[update]));
+    updates.forEach((field) => (user[field] = req.body[field]));
 
     await user.save();
     res.send(user);

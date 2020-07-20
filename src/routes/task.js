@@ -76,16 +76,16 @@ router.patch("/tasks/:id", auth, async (req, res) => {
     return res.status(400).send({ error: "Invalid updates." });
 
   try {
-    // Doesn't properly prompt if trying to update invalid field.
+    // 1. Doesn't properly prompt if trying to update invalid field.
     // const task = await Task.findByIdAndUpdate(req.params.id, req.body, {
     //   new: true,
     //   runValidators: true,
     // });
 
-    // Authenticated user can patch
+    // 2. Authenticated user can patch
     // const task = await Task.findOne(req.params.id);
 
-    // Authenticated & owner can patch
+    // 3. Authenticated & owner can patch
     const task = await Task.findOne({
       _id: req.params.id,
       owner: req.user._id,
