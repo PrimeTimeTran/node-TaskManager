@@ -32,15 +32,4 @@ taskSchema.pre("save", async function(next) {
 
 const Task = mongoose.model("Task", taskSchema);
 
-// const task = new Task({ description: "Complete challenge" });
-
-// task
-//   .save()
-//   .then(doc => {
-//     console.log(doc);
-//   })
-//   .catch(error => {
-//     console.log(error);
-//   });
-
 module.exports = Task;

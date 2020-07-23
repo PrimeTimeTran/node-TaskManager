@@ -93,7 +93,6 @@ userSchema.methods.toJSON = function () {
   return userObject;
 };
 
-// Define a method on the model class.
 userSchema.statics.findByCredentials = async (email, password) => {
   const user = await User.findOne({ email });
   if (!user) {
@@ -109,7 +108,6 @@ userSchema.statics.findByCredentials = async (email, password) => {
   return user;
 };
 
-// Hash password middleware before saving.
 userSchema.pre("save", async function (next) {
   const user = this;
   if (user.isModified("password")) {
@@ -118,7 +116,6 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-// ✍️ Delete tasks for user when a user is deleted
 userSchema.pre("remove", async function (next) {
   const user = this;
   await Task.deleteMany({ owner: user._id });
@@ -126,16 +123,5 @@ userSchema.pre("remove", async function (next) {
 });
 
 const User = mongoose.model("User", userSchema);
-
-// const loi = new User({ name: "Loi", email: "loi@coderschool.com", password: 'asdfas' });
-
-// loi
-//   .save()
-//   .then(doc => {
-//     console.log(doc);
-//   })
-//   .catch(error => {
-//     console.log(error);
-//   });
 
 module.exports = User;

@@ -10,20 +10,22 @@ const router = new express.Router();
 router.get("/tasks", auth, async (req, res) => {
   const match = {};
   const sort = {};
-
   if (req.query.completed) {
-    match.completed = true;
+    // completed is 'true'
+    match.completed = req.query.completed === 'true'
   }
 
   if (req.query.sortBy) {
     const parts = req.query.sortBy.split(":");
     sort[parts[0]] = parts[1] === "desc" ? -1 : 1;
   }
+
   const options = {
     sort,
     skip: parseInt(req.query.skip),
     limit: parseInt(req.query.limit),
   };
+
   try {
     await req.user
       .populate({
